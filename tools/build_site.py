@@ -40,6 +40,19 @@ ART = {
     "gutters": '<svg class="art" ' + S + ' viewBox="0 0 32 32" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7l13-4 13 4" stroke="' + N + '"/><path d="M3 11h24v3a3 3 0 0 1-3 3H6a3 3 0 0 1-3-3z" stroke="' + N + '"/><path d="M22 17v8" stroke="' + N + '"/><path d="M22 28.5v.5M18 22v1M26 22v1" stroke="' + R + '" stroke-width="2.4"/></svg>',
     "lighting": '<svg class="art" ' + S + ' viewBox="0 0 32 32" fill="none" stroke-width="1.8" stroke-linecap="round"><path d="M2 6c7 6 21 6 28 0" stroke="' + N + '"/><path d="M9 9.5v2M16 11v2M23 9.5v2" stroke="' + N + '"/><ellipse cx="9" cy="15.5" rx="2.4" ry="3.6" fill="' + G + '" stroke="none"/><ellipse cx="16" cy="17" rx="2.4" ry="3.6" fill="' + R + '" stroke="none"/><ellipse cx="23" cy="15.5" rx="2.4" ry="3.6" fill="' + G + '" stroke="none"/></svg>',
 }
+ART["roof"] = ('<svg class="art" ' + S + ' viewBox="0 0 32 32" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M2 17L16 5l14 12" stroke="' + N + '"/><path d="M6 14v14h20V14" stroke="' + N + '"/>'
+               '<path d="M10 11.5v4M14 8.5v5M18 8.5v3" stroke="' + R + '" stroke-width="2.2"/><path d="M13 28v-7h6v7" stroke="' + N + '"/></svg>')
+ART["landscape"] = ('<svg class="art" ' + S + ' viewBox="0 0 32 32" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4h8l-1.5 6h-5z" stroke="' + N + '"/><path d="M16 10v18M9 28h14" stroke="' + N + '"/>'
+                    '<path d="M11 14l-3 4M21 14l3 4M16 14v3" stroke="' + G + '" stroke-width="2"/></svg>')
+# (value, card label, art, quote-page line, services-row line)
+FUNNEL = [
+    ("windows", "Windows", "windows", "Inside, outside, screens", "Inside and out, screens included. Salt spray, water spots and storm grime off the glass."),
+    ("pressure", "Pressure washing", "pressure", "Driveways, patios, pool decks", "Driveways, patios, pool decks and fences, with soft washing where high pressure would do damage."),
+    ("roof", "Roof and house wash", "roof", "Algae streaks, mildew", "Gentle washing that lifts black algae streaks off the roof and mildew off the walls."),
+    ("gutters", "Gutters", "gutters", "Debris, downspouts, covers", "Sand, leaves and storm debris out, downspouts cleared, drainage checked. Covers available."),
+    ("holiday", "Holiday lights", "lighting", "Design, install, take down", "A display designed for your house, installed, looked after all season and taken down after."),
+    ("lighting", "Landscape lighting", "landscape", "Paths, patios, permanent", "Walkways, garden beds, bistro strings over the patio, and permanent lighting."),
+]
 TRUST_ART = [
     ('<svg ' + S + ' viewBox="0 0 52 52" fill="none" stroke-width="1.8"><circle cx="26" cy="24" r="17" stroke="' + N + '"/><circle cx="26" cy="24" r="12.5" stroke="' + N + '" stroke-dasharray="2 3"/><path d="M17 38l-4 11 6-3 3 5 3-9M35 38l4 11-6-3-3 5-3-9" stroke="' + R + '" stroke-linejoin="round"/><path d="M20.5 24.5l4 4 7.5-8" stroke="' + R + '" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg>',
      "100% money-back guarantee", "If you're not happy, we make it right or refund you."),
@@ -84,14 +97,13 @@ def head(title, desc, root):
 
 
 def header(root, cur):
-    nav = [("Home", root, "home"), ("Services", root + "#services", ""), ("Holiday lights", root + "#lights", ""),
+    nav = [("Services", root + "#services", ""), ("Holiday lights", root + "#lights", ""),
            ("Reviews", root + "#reviews", ""), ("Service area", root + "#area", ""), ("Estimate", root + "quote/", "quote")]
-    links = "".join('<a href="' + h + '"' + (' aria-current="page"' if k == cur else '') + '>' + t + '</a>' for t, h, k in nav[:5])
-    over = "".join('<a href="' + h + '">' + t + '</a>' for t, h, k in nav)
+    links = "".join('<a href="' + h + '"' + (' aria-current="page"' if k == cur else '') + '>' + t + '</a>' for t, h, k in nav[:4])
+    over = '<a href="' + root + '">Home</a>' + "".join('<a href="' + h + '">' + t + '</a>' for t, h, k in nav)
     return ('<body>\n<a class="screen-reader-text" href="#main">Skip to content</a>\n'
             '<header class="site-header wp-block-template-part">\n<div class="inner wp-block-group alignwide">\n'
             '<a class="wp-block-site-logo" href="' + root + '" aria-label="Shine of Fort Lauderdale, home" data-logo><img src="' + root + 'assets/img/logo.svg" alt="Shine" width="116" height="50"></a>\n'
-            '<p class="wp-block-site-title">Exterior Cleaning<br>&amp; Lighting, Fort Lauderdale</p>\n'
             '<nav class="wp-block-navigation" aria-label="Main">' + links + '</nav>\n'
             '<div class="header-actions"><a class="header-phone" href="tel:' + TEL + '">' + ICON["phone"] + PHONE + '</a>'
             '<div class="wp-block-button"><a class="wp-block-button__link wp-element-button" href="' + root + 'quote/">Free estimate</a></div>'
@@ -124,27 +136,8 @@ def choice(name, val, label, art, typ="radio", desc=""):
             '<span class="tick">' + ICON["check"] + '</span></label>')
 
 
-SERVICES = [
-    ("windows", "Window cleaning", "Inside and out, screens included. Salt spray, water spots and storm grime off the glass so the view comes back.",
-     ["Exterior and interior glass", "Screens, tracks and sills", "Hard-to-reach and two-story windows"]),
-    ("pressure", "Pressure washing and soft washing", "Professional equipment and soft washing for the surfaces that DIY machines tend to damage.",
-     ["Driveways and sidewalks", "Patios, decks and pool areas", "Siding, fences and outdoor furniture"]),
-    ("roof", "Roof and house washing", "Gentle washing that lifts the dark algae streaks off the roof and the mildew off the walls.",
-     ["Black streaks on tile and shingle", "Mold and pollen on siding", "Safe for paint and screens"]),
-    ("gutters", "Gutter cleaning and covers", "We clear the sand, leaves and storm debris, flush the downspouts and check that water drains away from the house.",
-     ["Debris out, downspouts cleared", "Drainage checked", "Gutter covers available"]),
-    ("lighting", "Landscape and bistro lighting", "Lights for patios, walkways, garden beds and the front of the house, for every night of the year.",
-     ["Landscape and path lighting", "Bistro and string lights", "Permanent and event lighting"]),
-]
-
-
 def home():
     root = ""
-    svc = ""
-    for i, (k, t, d, pts) in enumerate(SERVICES):
-        svc += ('<details class="wp-block-details is-style-arrow-icon-details"' + (' open' if i == 0 else '') + '><summary><span class="num">0' + str(i + 1) + '</span>' + t + '</summary>'
-                '<p>' + d + '</p><ul class="wp-block-list">' + "".join("<li>" + p + "</li>" for p in pts) + '</ul>'
-                '<p><a class="text-link" href="quote/?service=' + k + '">Get an estimate for this ' + ICON["arrow"] + '</a></p></details>\n')
     trust = "".join('<div class="wp-reveal">' + a + '<div><h3>' + h + '</h3><p>' + p + '</p></div></div>' for a, h, p in TRUST_ART)
     towns = "".join("<li>" + t + "</li>" for t in TOWNS)
     faqs = [
@@ -155,39 +148,40 @@ def home():
         ("Can you clean my roof without damaging it?", "That's why we soft wash. Low pressure and the right cleaner lift the algae streaks without forcing water under tiles or shingles."),
     ]
     faq = "".join('<details class="wp-block-details is-style-arrow-icon-details"><summary>' + q + '</summary><p>' + a + '</p></details>' for q, a in faqs)
+    # Funnel step 1: low-commitment picker (services + ZIP). Name and phone come later, on the quote page.
+    picks = "".join(choice("services", k, t, a, "checkbox") for k, t, a, d, _ in FUNNEL)
     hero_form = (
-        '<div class="gform_wrapper gravity-theme" data-form="mini">'
-        '<div class="gform_heading"><h2 class="gform_title">Get your free estimate</h2><p class="gform_description">Takes a minute</p></div>'
-        '<form novalidate><div class="gform_validation_errors" hidden role="alert">There was a problem with your submission. Please review the fields below.</div>'
-        '<div class="gform_fields">'
-        '<div class="gfield gfield--width-half gfield_contains_required"><label class="gfield_label" for="h-name">Name<span class="gfield_required">*</span></label><input id="h-name" name="name" autocomplete="name" required></div>'
-        '<div class="gfield gfield--width-half gfield_contains_required"><label class="gfield_label" for="h-phone">Phone<span class="gfield_required">*</span></label><input id="h-phone" name="phone" type="tel" autocomplete="tel" required></div>'
-        '<fieldset class="gfield gfield_contains_required" data-group><legend class="gfield_label">What can we help with?<span class="gfield_required">*</span></legend><div class="choice-cards">'
-        + choice("service", "windows", "Windows", "windows") + choice("service", "pressure", "Pressure washing", "pressure")
-        + choice("service", "gutters", "Gutters", "gutters") + choice("service", "lighting", "Lights", "lighting") +
-        '</div></fieldset></div>'
-        '<div class="zip-row"><div class="gfield gfield_contains_required"><label class="gfield_label" for="h-zip">ZIP code<span class="gfield_required">*</span></label><input id="h-zip" name="zip" inputmode="numeric" maxlength="5" autocomplete="postal-code" required></div>'
-        '<button class="wp-block-button__link wp-element-button" type="submit">Get my estimate</button></div>'
+        '<div class="gform_wrapper gravity-theme start-box" data-form="start">'
+        '<form novalidate action="quote/"><div class="gform_validation_errors" hidden role="alert">Pick at least one service and enter a 5-digit ZIP code.</div>'
+        '<fieldset class="gfield gfield_contains_required" data-group><legend class="gfield_label">What needs a shine? <span class="gfield_description">Choose one or more</span></legend>'
+        '<div class="choice-cards is-picker">' + picks + '</div></fieldset>'
+        '<div class="zip-row"><div class="gfield gfield_contains_required"><label class="gfield_label" for="h-zip">Your ZIP code</label><input id="h-zip" name="zip" inputmode="numeric" maxlength="5" autocomplete="postal-code" placeholder="e.g. 33301" required></div>'
+        '<button class="wp-block-button__link wp-element-button" type="submit">Get my free estimate ' + ICON["arrow"] + '</button></div>'
         '</form></div>')
+    svc_rows = "".join(
+        '<li class="svc-row wp-reveal"><div class="svc-name">' + ART[a].replace('class="art"', 'class="art lg"') + '<h3>' + t + '</h3></div>'
+        '<p>' + d + '</p><a class="text-link" href="quote/?services=' + k + '">Get a price ' + ICON["arrow"] + '</a></li>'
+        for k, t, a, _, d in FUNNEL)
     body = (
         '<main id="main">\n'
         # Hero: core Media & Text (media right, image fill)
         '<section class="wp-block-media-text has-media-on-the-right is-stacked-on-mobile is-image-fill-element hero">\n'
         '<div class="wp-block-media-text__content">'
-        '<h1>Window cleaning, pressure washing and lighting in Fort Lauderdale</h1>'
-        '<p class="lede">Salt air, storms and algae are hard on a South Florida house. Our local crew cleans the glass, roof, driveway and gutters, and hangs your holiday lights.</p>'
+        '<h1>Window cleaning and exterior care in Fort Lauderdale</h1>'
+        '<p class="lede">Clear glass, clean roofs and driveways, and holiday lights hung for you. Pick what you need and get a free estimate from the local crew.</p>'
         + hero_form +
-        '<ul class="hero-meta"><li>' + ICON["star"] + '100% money-back guarantee</li><li>' + ICON["dot"] + 'Boca to Pembroke Pines</li><li>' + ICON["phone"] + '<a href="tel:' + TEL + '">' + PHONE + '</a></li></ul>'
+        '<ul class="hero-meta"><li>' + ICON["check"] + '100% money-back guarantee</li><li>' + ICON["check"] + 'Free, no-obligation estimate</li><li>' + ICON["check"] + 'Locally owned</li></ul>'
         '</div>\n<figure class="wp-block-media-text__media"><img src="assets/img/hero.webp" srcset="assets/img/hero-1000.webp 1000w, assets/img/hero.webp 2000w" sizes="(max-width: 781px) 100vw, 50vw" alt="Shine technician cleaning the windows of a patio" width="2000" height="982" fetchpriority="high"></figure>\n'
         '</section>\n'
         # Trust row
         '<section class="wp-block-group"><div class="trust alignwide">' + trust + '</div></section>\n'
         # Services: TT24 cta-services-image-left
-        '<section class="wp-block-group section has-base-2-background-color" id="services"><div class="alignwide columns">\n'
-        '<div class="services-media wp-reveal"><figure class="wp-block-image"><img src="assets/img/inside.webp" alt="A Shine technician washing a window seen from inside the living room" width="1400" height="933" loading="lazy"><figcaption>Inside and outside, the same visit.</figcaption></figure></div>\n'
-        '<div><p class="is-style-text-annotation">What we do</p><h2>Everything on the outside of the house, and the glass on the inside</h2>'
-        '<p class="is-muted">The Florida climate works on a building every day. Pick one service or put a few together on the same visit.</p>\n'
-        + svc + '</div>\n</div></section>\n'
+        '<section class="wp-block-group section has-base-2-background-color" id="services"><div class="alignwide">\n'
+        '<div class="section-head"><h2>Everything on the outside of the house, and the glass on the inside</h2>'
+        '<p class="is-muted">Salt air, storms and algae work on a South Florida building every day. Book one service, or put a few together on the same visit.</p></div>\n'
+        '<ul class="svc-list">' + svc_rows + '</ul>\n'
+        '<p class="svc-foot">Not sure what you need? Call <a href="tel:' + TEL + '">' + PHONE + '</a> and describe it. We\'ll tell you.</p>\n'
+        '</div></section>\n'
         # Lights band
         '<section class="lights" id="lights" data-lights>' + string_svg(26) + '\n<div class="inner wp-block-group"><div class="alignwide grid">\n'
         '<div class="wp-reveal"><p class="is-style-text-annotation">Booking now for the holidays</p><h2>Holiday lights, designed, hung and taken down for you</h2>'
@@ -208,7 +202,6 @@ def home():
         '<p>We\'re locally owned and operated, working out of Pompano Beach. You get the training, equipment and guarantee of a national brand, and the people who turn up know what sea salt and a rainy season do to a house here.</p>'
         '<p>Homeowners call us for clear windows and clean roofs. Property managers call us for storefronts, offices and apartment buildings that need to look cared for.</p>'
         '<div class="wp-block-buttons"><div class="wp-block-button is-style-outline"><a class="wp-block-button__link wp-element-button" href="tel:' + TEL + '">' + ICON["phone"] + 'Call ' + PHONE + '</a></div></div>'
-        '<div class="pair"><figure><img src="assets/img/vans.webp" alt="Three Shine vans" width="1200" height="453" loading="lazy" style="background:#fff"></figure><figure><img src="assets/img/squeegee.webp" alt="A squeegee pulling soapy water off a window" width="1200" height="630" loading="lazy"></figure></div>'
         '</div>\n</div></section>\n'
         # Steps + guarantee
         '<section class="wp-block-group section has-accent-4-background-color"><div class="alignwide">\n'
@@ -254,14 +247,11 @@ def home():
 
 def quote():
     root = "../"
-    svc = [("windows", "Window cleaning", "windows", "Inside, outside, screens"), ("pressure", "Pressure washing", "pressure", "Driveways, patios, pool decks"),
-           ("roof", "Roof and house washing", "pressure", "Algae streaks, mildew"), ("gutters", "Gutter cleaning or covers", "gutters", "Debris, downspouts, drainage"),
-           ("holiday", "Holiday lighting", "lighting", "Design, install, take down"), ("lighting", "Landscape or bistro lighting", "lighting", "Patios, paths, permanent")]
-    cards = "".join(choice("services", k, t, a, "checkbox", d) for k, t, a, d in svc)
+    cards = "".join(choice("services", k, t, a, "checkbox", d) for k, t, a, d, _ in FUNNEL)
     body = (
-        '<main id="main">\n<section class="page-banner"><div class="alignwide"><p class="is-style-text-annotation">Free, no-obligation</p><h1>Get your free estimate</h1>'
-        '<p style="max-width:38em;color:#c9cfd4">Three short steps. The Fort Lauderdale team reads every request and comes back to you with a price and a time.</p></div></section>\n'
-        '<section class="wp-block-group section" style="padding-top:var(--wp--preset--spacing--60)"><div class="alignwide quote-layout">\n'
+        '<main id="main">\n<section class="page-banner is-compact"><div class="alignwide"><h1>Get your free estimate</h1>'
+        '<p style="max-width:38em;color:#c9cfd4">Three short steps, about a minute. The Fort Lauderdale team calls you back with a price and a time.</p></div></section>\n'
+        '<section class="wp-block-group section" style="padding-top:var(--wp--preset--spacing--50)"><div class="alignwide quote-layout">\n'
         '<div class="gform_wrapper gravity-theme" data-form="multi"><form novalidate>'
         '<p class="gf_progressbar_title">Step <span data-step>1</span> of 3</p><div class="gf_progressbar" aria-hidden="true"><div class="gf_progressbar_percentage" style="width:33%"></div></div>'
         '<div class="gform_validation_errors" hidden role="alert">There was a problem with your submission. Please review the fields below.</div>\n'

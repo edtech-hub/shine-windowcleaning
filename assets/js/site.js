@@ -39,15 +39,40 @@
     // Prototype only: the form service (e.g. Gravity Forms or a webhook) gets wired in here.
     wrap.innerHTML = '<div class="gform_confirmation_message" role="status"><h3>Thanks' + (name ? ', ' + name.split(' ')[0] : '') + '.</h3><p>Your request is in. The Fort Lauderdale team will call you shortly to talk through your estimate.</p></div>';
   }
-  $$('[data-form]').forEach(function (wrap) {
+  // Funnel step 1 (home hero): services + ZIP, then hand over to the quote page on step 2
+  $$('[data-form="start"]').forEach(function (wrap) {
     var form = $('form', wrap), err = $('.gform_validation_errors', wrap);
-    var q = new URLSearchParams(location.search).get('service');
-    if (q) { var c = $('input[value="' + q + '"]', form); if (c) c.checked = true; }
+    form.addEventListener('submit', function (e) {
+      e.preventDefault();
+      var picked = $$('input[name="services"]:checked', form).map(function (i) { return i.value; });
+      var zip = form.elements.zip.value.trim();
+      $('fieldset', form).classList.toggle('gfield_error', !picked.length);
+      form.elements.zip.closest('.gfield').classList.toggle('gfield_error', !/^\d{5}$/.test(zip));
+      if (!picked.length || !/^\d{5}$/.test(zip)) { err.hidden = false; return; }
+      location.href = form.getAttribute('action') + '?services=' + picked.join(',') + '&zip=' + zip;
+    });
+  });
+
+  // Quote page: 3 steps, arrives pre-filled from the hero or a "Get a price" link
+  $$('[data-form="multi"]').forEach(function (wrap) {
+    var form = $('form', wrap), err = $('.gform_validation_errors', wrap);
+    var qs = new URLSearchParams(location.search);
+    var pre = (qs.get('services') || qs.get('service') || '').split(',').filter(Boolean);
+    pre.forEach(function (v) { var c = $('input[name="services"][value="' + v + '"]', form); if (c) c.checked = true; });
+    if (/^\d{5}$/.test(qs.get('zip') || '')) form.elements.zip.value = qs.get('zip');
     var pages = $$('.gform_page', form), cur = 0;
-    function show(n) { pages.forEach(function (p, i) { p.hidden = i !== n; }); cur = n; $('[data-step]', form).textContent = n + 1; $('.gf_progressbar_percentage', form).style.width = Math.round((n + 1) / pages.length * 100) + '%'; err.hidden = true; wrap.scrollIntoView({ block: 'start', behavior: reduce ? 'auto' : 'smooth' }); }
+    function show(n, quiet) {
+      pages.forEach(function (p, i) { p.hidden = i !== n; }); cur = n;
+      $('[data-step]', form).textContent = n + 1;
+      $('.gf_progressbar_percentage', form).style.width = Math.round((n + 1) / pages.length * 100) + '%';
+      err.hidden = true;
+      if (!quiet) wrap.scrollIntoView({ block: 'start', behavior: reduce ? 'auto' : 'smooth' });
+      var f = $('input:not([type=checkbox]):not([type=radio]), select', pages[n]); if (f && !quiet) f.focus({ preventScroll: true });
+    }
+    if (pre.length && qs.get('zip')) show(1, true);
     $$('[data-next]', form).forEach(function (b) { b.addEventListener('click', function () { if (validate(pages[cur])) show(cur + 1); else err.hidden = false; }); });
     $$('[data-prev]', form).forEach(function (b) { b.addEventListener('click', function () { show(cur - 1); }); });
-    form.addEventListener('submit', function (e) { e.preventDefault(); if (validate(pages.length ? pages[cur] : form)) confirm(wrap, (form.elements.name || {}).value); else err.hidden = false; });
+    form.addEventListener('submit', function (e) { e.preventDefault(); if (validate(pages[cur])) confirm(wrap, form.elements.name.value); else err.hidden = false; });
   });
 
   // Easter egg: type "shine" or tap the logo five times and the header gets its holiday lights
